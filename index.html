@@ -38,7 +38,44 @@
   </style>
 </head>
 
-<body>
+<<!-- بحث ذكي -->
+<script>
+function fuzzySearch(text, query) {
+  const map = {'أ':'ا','إ':'ا','آ':'ا','ة':'ه'};
+  text = text.replace(/[أإآة]/g, c => map[c]||c);
+  query = query.replace(/[أإآة]/g, c => map[c]||c);
+  return text.toLowerCase().includes(query.toLowerCase());
+}
+</script>
+
+<!-- تنبيهات بسيطة -->
+<script>
+function notify(msg) {
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification('🔔 DarkControl', { body: msg });
+  } else {
+    alert(msg);
+  }
+}
+// اطلب الإذن أول مرة
+if ('Notification' in window && Notification.permission === 'default') {
+  Notification.requestPermission();
+}
+</script>
+
+<!-- تصدير PDF فوري -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+function exportPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const servers = JSON.parse(localStorage.getItem('darkcontrol_servers') || '[]');
+  doc.text("DarkControl Report", 10, 10);
+  doc.text("Total Servers: " + servers.length, 10, 20);
+  doc.save("DarkControl.pdf");
+}
+</script>
+  >
   <div class="container">
     <!-- ========== Header ========== -->
     <header>
