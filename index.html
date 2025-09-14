@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>DarkControl Serveur | نظام إدارة الخوادم</title>
+  <meta name="description" content="إدارة خوادم كاملة: مراقبة، نسخ احتياطية، نشر، وأمان عسكري — بدون خبرة تقنية">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{--primary:#0d47a1;--secondary:#2196f3;--accent:#ff4081;--bg:#121212;--text:#eee;--card:#1e1e1e;--success:#2e7d32;--danger:#c62828;--radius:12px;--shadow:0 2px 8px rgba(0,0,0,.3);--transition:all .3s ease}
+    [data-theme=light]{--bg:#ffffff;--text:#212121;--card:#f5f5f5;--shadow:0 2px 8px rgba(0,0,0,.1)}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Cairo',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;transition:var(--transition)}
+    a{text-decoration:none;color:var(--primary)}
+    .container{max-width:1200px;margin:auto;padding:1rem}
+    header{display:flex;align-items:center;justify-content:space-between;padding:1rem 0;border-bottom:1px solid var(--card)}
+    .logo{font-size:1.5rem;font-weight:700;color:var(--primary)}
+    .nav{display:flex;align-items:center;gap:.75rem}
+    .btn-icon{background:var(--card);border:1px solid var(--card);padding:.5rem .75rem;border-radius:var(--radius);cursor:pointer;transition:var(--transition)}.btn-icon:hover{background:var(--primary);color:#fff}
+    .hero{text-align:center;padding:3rem 1rem;background:linear-gradient(135deg,var(--primary),var(--secondary));color:#fff;border-radius:var(--radius);margin-bottom:2rem}
+    .hero h1{font-size:clamp(1.8rem,5vw,3rem);margin-bottom:1rem}
+    .section-title{font-size:1.5rem;margin-bottom:1rem;color:var(--secondary)}
+    .grid-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem}
+    .card{background:var(--card);padding:1.5rem;border-radius:var(--radius);box-shadow:var(--shadow);transition:var(--transition)}
+    .card:hover{transform:translateY(-4px)}
+    .form-group{margin-bottom:1rem}label{display:block;margin-bottom:.5rem;font-weight:600}
+    input,textarea,select{width:100%;padding:.75rem;border:1px solid var(--card);border-radius:var(--radius);background:var(--bg);color:var(--text);font-family:inherit}
+    button{cursor:pointer;border-radius:var(--radius);border:none;transition:var(--transition)}
+    .btn-primary{background:linear-gradient(135deg,var(--primary),var(--secondary));color:#fff;padding:.75rem 1.5rem;font-size:1rem}
+    .btn-primary:hover{transform:translateY(-2px)}
+    .btn-danger{background:var(--danger);color:#fff;padding:.5rem 1rem;font-size:.9rem}
+    .btn-success{background:var(--success);color:#fff;padding:.5rem 1rem;font-size:.9rem}
+    .flex-between{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem}
+    .hidden{display:none}
+    footer{text-align:center;padding:2rem 1rem;font-size:.9rem;color:var(--text)}
+    body[dir=ltr] ul{padding-left:1rem;padding-right:0}
+    @media print{.nav,.btn-danger,.btn-success{display:none}body{background:#fff;color:#000}}
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <!-- ========== Header ========== -->
+    <header>
+      <div class="logo" id="logo">DarkControl Serveur</div>
+      <nav class="nav">
+        <button class="btn-icon" id="langBtn">EN</button>
+        <button class="btn-icon" id="themeBtn">☀️</button>
+        <button class="btn-icon" id="logoutBtn" onclick="logout()" style="display:none">🚪</button>
+      </nav>
+    </header>
+
+    <!-- ========== Login Section ========== -->
+    <section id="loginPage">
+      <div class="card" style="max-width:400px;margin:4rem auto;text-align:center">
+        <h2 id="loginTitle">تسجيل الدخول</h2>
+        <form id="loginForm" onsubmit="login(event)">
+          <div class="form-group">
+            <label for="user">اسم المستخدم</label>
+            <input type="text" id="user" required placeholder="admin">
+          </div>
+          <div class="form-group">
+            <label for="pass">كلمة المرور</label>
+            <input type="password" id="pass" required placeholder="123456">
+          </div>
+          <!-- زر دائري يعمل بالكليك و Enter -->
+          <button type="submit" class="btn-primary" style="width:100%;border-radius:50px;padding:1rem;font-size:1.1rem">تسجيل الدخول الآن</button>
+        </form>
+        <p style="margin-top:1rem;font-size:.9rem;text-align:center"> demo: admin / 123456 </p>
+      </div>
+    </section>
+
+    <!-- ========== Dashboard Section ========== -->
+    <section id="dashboardPage" class="hidden">
+      <div class="flex-between">
+        <h2 id="dashTitle">لوحة التحكم</h2>
+        <button class="btn-primary" onclick="showPage('addServerPage')">+ إضافة خادم</button>
+      </div>
+
+      <!-- الإحصائيات -->
+      <div class="grid-3" style="margin-bottom:2rem">
+        <div class="card">
+          <h3 id="stats1">إجمالي الخوادم</h3>
+          <p id="totalServers" style="font-size:2rem;color:var(--secondary)">0</p>
+        </div>
+        <div class="card">
+          <h3 id="stats2">متصل الآن</h3>
+          <p id="onlineServers" style="font-size:2rem;color:var(--success)">0</p>
+        </div>
+        <div class="card">
+          <h3 id="stats3">آخر نسخة احتياطية</h3>
+          <p id="lastBackup" style="font-size:1rem">--</p>
+        </div>
+      </div>
+
+      <!-- رسوم بيانية بسيطة -->
+      <div class="card">
+        <h3 id="chartTitle">مخطط الأداء (آخر 7 أيام)</h3>
+        <svg id="performanceChart" width="100%" height="200" viewBox="0 0 500 200">
+          <polyline fill="none" stroke="var(--secondary)" stroke-width="2" points="20,180 80,150 140,120 200,100 260,80 320,60 380,40"/>
+          <circle cx="20" cy="180" r="4" fill="var(--secondary)"/>
+          <circle cx="80" cy="150" r="4" fill="var(--secondary)"/>
+          <circle cx="140" cy="120" r="4" fill="var(--secondary)"/>
+          <circle cx="200" cy="100" r="4" fill="var(--secondary)"/>
+          <circle cx="260" cy="80" r="4" fill="var(--secondary)"/>
+          <circle cx="320" cy="60" r="4" fill="var(--secondary)"/>
+          <circle cx="380" cy="40" r="4" fill="var(--secondary)"/>
+        </svg>
+      </div>
+
+      <!-- قائمة الخوادم -->
+      <div class="card" style="margin-top:1.5rem">
+        <div class="flex-between">
+          <h3 id="listTitle">خوادمي</h3>
+          <input type="text" id="searchInput" placeholder="بحث..." oninput="filterServers()" style="max-width:200px">
+        </div>
+        <div id="serverList"></div>
+      </div>
+    </section>
+
+    <!-- ========== Add Server Section ========== -->
+    <section id="addServerPage" class="hidden">
+      <div class="flex-between">
+        <h2 id="addTitle">إضافة خادم جديد</h2>
+        <button class="btn-back" onclick="showPage('dashboardPage')">رجوع</button>
+      </div>
+      <div class="card">
+        <form id="addServerForm" onsubmit="addServer(event)">
+          <div class="form-group">
+            <label for="serverName">اسم الخادم</label>
+            <input type="text" id="serverName" required>
+          </div>
+          <div class="form-group">
+            <label for="serverIP">عنوان IP</label>
+            <input type="text" id="serverIP" required placeholder="192.168.1.100">
+          </div>
+          <div class="form-group">
+            <label for="serverPort">المنفذ</label>
+            <input type="number" id="serverPort" required placeholder="22">
+          </div>
+          <div class="form-group">
+            <label for="serverOS">نظام التشغيل</label>
+            <select id="serverOS" required>
+              <option value="Ubuntu">Ubuntu</option>
+              <option value="CentOS">CentOS</option>
+              <option value="Debian">Debian</option>
+              <option value="Windows">Windows Server</option>
+            </select>
+          </div>
+          <button type="submit" class="btn-primary" style="width:100%;border-radius:50px;padding:1rem;font-size:1.1rem">حفظ الخادم</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- ========== Backup Section ========== -->
+    <section id="backupPage" class="hidden">
+      <div class="flex-between">
+        <h2 id="backupTitle">النسخ الاحتياطية</h2>
+        <div>
+          <button class="btn-success" onclick="createBackup()">+ نسخ جديد</button>
+          <button class="btn-back" onclick="showPage('dashboardPage')">رجوع</button>
+        </div>
+      </div>
+      <div class="card">
+        <div id="backupList"></div>
+      </div>
+    </section>
+
+    <!-- ========== Settings Section ========== -->
+    <section id="settingsPage" class="hidden">
+      <div class="flex-between">
+        <h2 id="settingsTitle">إعدادات الحساب</h2>
+        <button class="btn-back" onclick="showPage('dashboardPage')">رجوع</button>
+      </div>
+      <div class="card">
+        <form id="settingsForm" onsubmit="saveSettings(event)">
+          <div class="form-group">
+            <label for="newUsername">اسم المستخدم الجديد</label>
+            <input type="text" id="newUsername">
+          </div>
+          <div class="form-group">
+            <label for="newPass">كلمة المرور الجديدة</label>
+            <input type="password" id="newPass">
+          </div>
+          <button type="submit" class="btn-primary">حفظ التغييرات</button>
+        </form>
+        <hr style="margin:2rem 0;border:none;border-top:1px solid var(--card)">
+        <button class="btn-danger" onclick="resetData()">🗑️ حذف جميع البيانات</button>
+        <hr style="margin:2rem 0;border:none;border-top:1px solid var(--card)">
+        <button class="btn-primary" onclick="exportData()">📤 تصدير PDF</button>
+        <button class="btn-primary" onclick="document.getElementById('importFile').click()">📥 استيراد JSON</button>
+        <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+      </div>
+    </section>
+
+    <!-- ========== Footer ========== -->
+    <footer>
+      <p id="footerText">© 2025 DarkControl Serveur. جميع الحقوق محفوظة.</p>
+    </footer>
+  </div>
+
+  <!-- ======== المميزات الجديدة (الآن) ======== -->
+  <!-- 1) بحث ذكي -->
+  <script>
+    function fuzzySearch(text, query) {
+      const map = {'أ':'ا','إ':'ا','آ':'ا','ة':'ه'};
+      text = text.replace(/[أإآة]/g, c => map[c]||c);
+      query = query.replace(/[أإآة]/g, c => map[c]||c);
+      return text.toLowerCase().includes(query.toLowerCase());
+    }
+  </script>
+
+  <!-- 2) تنبيهات فورية -->
+  <script>
+    function notify(msg) {
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('🔔 DarkControl', { body: msg });
+      } else {
+        alert(msg);
+      }
+    }
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  </script>
+
+  <!-- 3) تصدير PDF فوري -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    function exportData() {
+      const { jsPDF } = window.jspdf;
+      const servers = JSON.parse(localStorage.getItem('darkcontrol_servers') || '[]');
+      const doc = new jsPDF();
+      doc.text("DarkControl Report", 10, 10);
+      doc.text("Total Servers: " + servers.length, 10, 20);
+      servers.forEach((s, i) => {
+        doc.text(`${i+1}. ${s.name} - ${s.ip}:${s.port}`, 10, 30 + (i * 10));
+      });
+      doc.save("DarkControl_Report.pdf");
+    }
+  </script>
+
+  <!-- ======== JavaScript الرئيسي ======== -->
+  <script>
+    // ======== Language & Theme ========
+    const translations = {
+      ar: {
+        logo: 'DarkControl Serveur',
+        loginTitle: 'تسجيل الدخول',
+        user: 'اسم المستخدم',
+        pass: 'كلمة المرور',
+        submitBtn: 'تسجيل الدخول الآن',
+        dashTitle: 'لوحة التحكم',
+        addTitle: 'إضافة خادم جديد',
+        backupTitle: 'النسخ الاحتياطية',
+        settingsTitle: 'إعدادات الحساب',
+        stats1: 'إجمالي الخوادم',
+        stats2: 'متصل الآن',
+        stats3: 'آخر نسخة احتياطية',
+        chartTitle: 'مخطط الأداء (آخر 7 أيام)',
+        listTitle: 'خوادمي',
+        searchPlaceholder: 'بحث...',
+        serverName: 'اسم الخادم',
+        serverIP: 'عنوان IP',
+        serverPort: 'المنفذ',
+        serverOS: 'نظام التشغيل',
+        saveServer: 'حفظ الخادم',
+        newUsername: 'اسم المستخدم الجديد',
+        newPass: 'كلمة المرور الجديدة',
+        saveSettings: 'حفظ التغييرات',
+        resetData: '🗑️ حذف جميع البيانات',
+        exportData: '📤 تصدير PDF',
+        importData: '📥 استيراد JSON',
+        footerText: '© 2025 DarkControl Serveur. جميع الحقوق محفوظة.',
+        langBtn: 'EN'
+      },
+      en: {
+        logo: 'DarkControl Serveur',
+        loginTitle: 'Login',
+        user: 'Username',
+        pass: 'Password',
+        submitBtn: 'Login Now',
+        dashTitle: 'Dashboard',
+        addTitle: 'Add New Server',
+        backupTitle: 'Backups',
+        settingsTitle: 'Account Settings',
+        stats1: 'Total Servers',
+        stats2: 'Online Now',
+        stats3: 'Last Backup',
+        chartTitle: 'Performance Chart (Last 7 Days)',
+        listTitle: 'My Servers',
+        searchPlaceholder: 'Search...',
+        serverName: 'Server Name',
+        serverIP: 'IP Address',
+        serverPort: 'Port',
+        serverOS: 'Operating System',
+        saveServer: 'Save Server',
+        newUsername: 'New Username',
+        newPass: 'New Password',
+        saveSettings: 'Save Changes',
+        resetData: '🗑️ Delete All Data',
+        exportData: '📤 Export PDF',
+        importData: '📥 Import JSON',
+        footerText: '© 2025 DarkControl Serveur. All rights reserved.',
+        langBtn: 'AR'
+      }
+    };
+
+    let currentLang = 'ar';
+
+    function applyLanguage(lang) {
+      currentLang = lang;
+      const t = translations[lang];
+      Object.keys(t).forEach(key => {
+        const el = document.getElementById(key);
+        if (el) el.textContent = t[key];
+      });
+      document.documentElement.lang = lang;
+      document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+      document.getElementById('langBtn').textContent = t.langBtn;
+      localStorage.setItem('lang', lang);
+    }
+
+    document.getElementById('langBtn').addEventListener('click', () => {
+      applyLanguage(currentLang === 'ar' ? 'en' : 'ar');
+    });
+
+    document.getElementById('themeBtn').addEventListener('click', () => {
+      const html = document.documentElement;
+      const isDark = html.getAttribute('data-theme') === 'dark';
+      html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+      document.getElementById('themeBtn').textContent = isDark ? '☀️' : '🌙';
+      localStorage.setItem('theme', isDark ? 'light' : 'dark');
+    });
+
+    // ======== Auth ========
+    function login(e) {
+      e.preventDefault();
+      const user = document.getElementById('user').value.trim();
+      const pass = document.getElementById('pass').value.trim();
+      if (user === 'admin' && pass === '123456') {
+        localStorage.setItem('loggedIn', 'yes');
+        showPage('dashboardPage');
+        renderDashboard();
+        notify('تم تسجيل الدخول بنجاح');
+      } else {
+        alert(currentLang === 'ar' ? 'اسم المستخدم أو كلمة المرور خاطئة' : 'Incorrect username or password');
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('loggedIn');
+      showPage('loginPage');
+    }
+
+    // ======== Navigation ========
+    const pages = ['loginPage', 'dashboardPage', 'addServerPage', 'backupPage', 'settingsPage'];
+
+    function showPage(pageId) {
+      pages.forEach(id => document.getElementById(id).classList.add('hidden'));
+      document.getElementById(pageId).classList.remove('hidden');
+      if (pageId === 'dashboardPage') renderDashboard();
+      if (pageId === 'backupPage') renderBackups();
+      document.getElementById('logoutBtn').style.display = pageId === 'loginPage' ? 'none' : 'inline-block';
+    }
+
+    // ======== Dashboard ========
+    function renderDashboard() {
+      const servers = getServers();
+      document.getElementById('totalServers').textContent = servers.length;
+      document.getElementById('onlineServers').textContent = servers.filter(s => s.status === 'online').length;
+      document.getElementById('lastBackup').textContent = getLastBackup() || '--';
+      renderServerList(servers);
+    }
+
+    function renderServerList(servers) {
+      const list = document.getElementById('serverList');
+      if (servers.length === 0) {
+        list.innerHTML = `<p style="text-align:center;color:var(--text);">${currentLang === 'ar' ? 'لا توجد خوادم' : 'No servers'}</p>`;
+        return;
+      }
+      list.innerHTML = servers.map((s, i) => `
+        <div class="card" style="margin-bottom:1rem">
+          <div class="flex-between">
+            <div>
+              <h4>${s.name}</h4>
+              <p>${s.ip}:${s.port} · ${s.os}</p>
+              <p style="color:${s.status === 'online' ? 'var(--success)' : 'var(--danger)'};">${s.status === 'online' ? (currentLang === 'ar' ? 'متصل' : 'Online') : (currentLang === 'ar' ? 'غير متصل' : 'Offline')}</p>
+            </div>
+            <div style="display:flex;gap:.5rem">
+              <button class="btn-success" onclick="toggleServerStatus(${i})">${s.status === 'online' ? (currentLang === 'ar' ? 'إيقاف' : 'Stop') : (currentLang === 'ar' ? 'تشغيل' : 'Start')}</button>
+              <button class="btn-danger" onclick="deleteServer(${i})">🗑️</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function toggleServerStatus(index) {
+      const servers = getServers();
+      servers[index].status = servers[index].status === 'online' ? 'offline' : 'online';
+      saveServers(servers);
+      renderDashboard();
+      notify(s.status === 'online' ? 'تم تشغيل الخادم' : 'تم إيقاف الخادم');
+    }
+
+    function deleteServer(index) {
+      if (confirm(currentLang === 'ar' ? 'هل أنت متأكد من الحذف؟' : 'Are you sure you want to delete?')) {
+        const servers = getServers();
+        servers.splice(index, 1);
+        saveServers(servers);
+        renderDashboard();
+        notify('تم حذف الخادم');
+      }
+    }
+
+    function filterServers() {
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      const servers = getServers();
+      const filtered = servers.filter(s => fuzzySearch(s.name, search) || fuzzySearch(s.ip, search));
+      renderServerList(filtered);
+    }
+
+    // ======== Add Server ========
+    function addServer(e) {
+      e.preventDefault();
+      const servers = getServers();
+      const server = {
+        id: Date.now(),
+        name: document.getElementById('serverName').value.trim(),
+        ip: document.getElementById('serverIP').value.trim(),
+        port: document.getElementById('serverPort').value.trim(),
+        os: document.getElementById('serverOS').value,
+        status: 'offline',
+        created: new Date().toISOString()
+      };
+      servers.push(server);
+      saveServers(servers);
+      showPage('dashboardPage');
+      document.getElementById('addServerForm').reset();
+      notify('تم إضافة الخادم بنجاح');
+    }
+
+    // ======== Backups ========
+    function createBackup() {
+      const servers = getServers();
+      const backup = {
+        id: Date.now(),
+        date: new Date().toISOString(),
+        serversCount: servers.length,
+        data: servers
+      };
+      let backups = getBackups();
+      backups.push(backup);
+      localStorage.setItem('darkcontrol_backups', JSON.stringify(backups));
+      renderBackups();
+      notify('تم إنشاء النسخة الاحتياطية');
+    }
+
+    function renderBackups() {
+      const backups = getBackups();
+      const list = document.getElementById('backupList');
+      if (backups.length === 0) {
+        list.innerHTML = `<p style="text-align:center;color:var(--text);">${currentLang === 'ar' ? 'لا توجد نسخ احتياطية' : 'No backups'}</p>`;
+        return;
+      }
+      list.innerHTML = ba
